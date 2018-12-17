@@ -1,45 +1,54 @@
-# MXPickerView
+//
+//  ViewController.m
+//  MXPickerView
+//
+//  Created by Michael on 2018/10/30.
+//  Copyright © 2018 Michael. All rights reserved.
+//
 
-**MXPickerView** is an encapsulation for **UIPickerView** and **UIDatePicker** 
+#import "ViewController.h"
+#import "MXPickerView.h"
 
-## ScreenShot
+@interface ViewController ()
 
+@end
 
-MXPickerViewModeCustom | MXPickerViewModeYYYYMM_YYYYMM
-:---:|:---:|
-<image src="https://user-images.githubusercontent.com/38175174/50068092-3476cd00-01ff-11e9-9669-a1109d951e23.png" width="250px"> | <image src="https://user-images.githubusercontent.com/38175174/50067965-7e12e800-01fe-11e9-9395-f821296597e7.png" width="250px">
+@implementation ViewController
 
+#pragma mark - button actions
+- (IBAction)button:(UIButton *)sender {
+    MXPickerViewMode mode = [self.view.subviews indexOfObject:sender];
+    switch (mode) {
+        case MXPickerViewModeCustom:
+            [self showPickerViewForModeCustom];
+            break;
+        case MXPickerViewModeDD:
+        case MXPickerViewModeDD_DD:
+        case MXPickerViewModeMM:
+        case MXPickerViewModeMM_MM:
+        case MXPickerViewModeMM_DD:
+        case MXPickerViewModeMMDD_MMDD:
+        case MXPickerViewModeYYYY:
+        case MXPickerViewModeYYYY_YYYY:
+        case MXPickerViewModeYYYY_MM:
+        case MXPickerViewModeYYYYMM_YYYYMM:
+        case MXPickerViewModeYYYYMMDD_YYYYMMDD:
+            [self showPickerViewForModeDate:mode];
+            break;
+        case MXPickerViewModeTime:
+        case MXPickerViewModeDate:
+        case MXPickerViewModeDateAndTime:
+        case MXPickerViewModeCountDownTimer:
+            [self showPickerViewForModeTime:mode];
+            break;
+        default:
+            break;
+    }
+}
 
-## Enums
-```objective-c
- typedef NS_ENUM(NSInteger, MXPickerViewMode) {
-    MXPickerViewModeCustom,
-    //mode for `UIPickerView`
-    MXPickerViewModeDD, // 29号
-    MXPickerViewModeDD_DD, // 29号 - 29号
-    MXPickerViewModeMM, // 1月
-    MXPickerViewModeMM_MM, // 12月 - 12月
-    MXPickerViewModeMM_DD, // 12月 - 29号
-    MXPickerViewModeMMDD_MMDD, // 12月 29号 - 12月 29号
-    MXPickerViewModeYYYY, // 2018年
-    MXPickerViewModeYYYY_YYYY, // 2018年 - 2018年
-    MXPickerViewModeYYYY_MM, // 2018年 12月
-    MXPickerViewModeYYYYMM_YYYYMM, // 2018年 12月 - 2018年 12月
-    MXPickerViewModeYYYYMMDD_YYYYMMDD, // 2018年 12月 29日 - 2018年 12月 29日
-    //mode for `UIDatePicker`
-    MXPickerViewModeTime,           // Displays hour, minute, and optionally AM/PM designation depending on the locale setting (e.g. 6 | 53 | PM)
-    MXPickerViewModeDate,           // Displays month, day, and year depending on the locale setting (e.g. November | 15 | 2007)
-    MXPickerViewModeDateAndTime,    // Displays date, hour, minute, and optionally AM/PM designation depending on the locale setting (e.g. Wed Nov 15 | 6 | 53 | PM)
-    MXPickerViewModeCountDownTimer, // Displays hour and minute (e.g. 1 | 53)
-};
-```
-
-## How to use
-
-### MXPickerViewModeCustom
-
-```objective-c
-[MXPickerView showWithSize:CGSizeMake(self.view.bounds.size.width, 200) pickerViewMode:MXPickerViewModeCustom updateBlock:^(MXPickerView *pickerView, MXPickerViewMode pickerViewMode, id uiDatePickerOrUIPickerView) {
+#pragma mark - private
+- (void)showPickerViewForModeCustom {
+    [MXPickerView showWithSize:CGSizeMake(self.view.bounds.size.width, 200) pickerViewMode:MXPickerViewModeCustom updateBlock:^(MXPickerView *pickerView, MXPickerViewMode pickerViewMode, id uiDatePickerOrUIPickerView) {
         // 设置`contentlLabel`文字
         pickerView.modelsM = (id)@[@[@"0-0", @"0-1", @"0-2"], @[@"1-0", @"1-1", @"1-2"], @[@"2-0", @"2-1", @"2-2"]];
         pickerView.configPickerViewTitleForRowForComponentBlock = ^NSString *(MXPickerView *mxPickerView, UIPickerView *pickerView, NSInteger row, NSInteger component) {
@@ -68,24 +77,10 @@ MXPickerViewModeCustom | MXPickerViewModeYYYYMM_YYYYMM
             NSLog(@"selectedTitleOrCustomModels: %@", selectedTitleOrCustomModels);
         };
     }];
-```
+}
 
-### Other date Mode
-
-**MXPickerViewModeDD**， 
-**MXPickerViewModeDD_DD**
-**MXPickerViewModeMM**
-**MXPickerViewModeMM_MM**
-**MXPickerViewModeMM_DD**
-**MXPickerViewModeMMDD_MMDD**
-**MXPickerViewModeYYYY**
-**MXPickerViewModeYYYY_YYYY**
-**MXPickerViewModeYYYY_MM**
-**MXPickerViewModeYYYYMM_YYYYMM**
-**MXPickerViewModeYYYYMMDD_YYYYMMDD**
-
-``` objc
-[MXPickerView showWithSize:CGSizeMake(self.view.bounds.size.width, 200) pickerViewMode:mode updateBlock:^(MXPickerView *pickerView, MXPickerViewMode pickerViewMode, id uiDatePickerOrUIPickerView) {
+- (void)showPickerViewForModeDate:(MXPickerViewMode)mode {
+    [MXPickerView showWithSize:CGSizeMake(self.view.bounds.size.width, 200) pickerViewMode:mode updateBlock:^(MXPickerView *pickerView, MXPickerViewMode pickerViewMode, id uiDatePickerOrUIPickerView) {
         switch (mode) {
             case MXPickerViewModeDD:
             case MXPickerViewModeDD_DD: {
@@ -208,17 +203,10 @@ MXPickerViewModeCustom | MXPickerViewModeYYYYMM_YYYYMM
             NSLog(@"selectedTitleOrCustomModels: %@", selectedTitleOrCustomModels);
         };
     }];
-```
+}
 
-### Date and time
-
-**MXPickerViewModeTime**
-**MXPickerViewModeDate**
-**MXPickerViewModeDateAndTime**
-**MXPickerViewModeCountDownTimer**
-
-``` objective-c
-[MXPickerView showWithSize:CGSizeMake(self.view.bounds.size.width, 200) pickerViewMode:mode updateBlock:^(MXPickerView *pickerView, MXPickerViewMode pickerViewMode, id uiDatePickerOrUIPickerView) {
+- (void)showPickerViewForModeTime:(MXPickerViewMode)mode {
+    [MXPickerView showWithSize:CGSizeMake(self.view.bounds.size.width, 200) pickerViewMode:mode updateBlock:^(MXPickerView *pickerView, MXPickerViewMode pickerViewMode, id uiDatePickerOrUIPickerView) {
         UIDatePicker *datePicker = (UIDatePicker *)uiDatePickerOrUIPickerView;
         datePicker.minuteInterval = 1;
         switch (mode) {
@@ -253,5 +241,6 @@ MXPickerViewModeCustom | MXPickerViewModeYYYYMM_YYYYMM
             NSLog(@"date: %@", date);
         };
     }];
-```
+}
 
+@end
