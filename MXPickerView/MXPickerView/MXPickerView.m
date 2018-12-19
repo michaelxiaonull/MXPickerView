@@ -220,6 +220,22 @@ blue:((float)(0x##rgbValue & 0xFF))/255.0 alpha:trans]
         pickerView.frame = CGRectMake(0, y, self.bounds.size.width, h);
         [self addSubview:pickerView];
         !updateBlock ?: updateBlock(self, _pickerViewMode, pickerView);
+        if (pickerViewMode == MXPickerViewModeCustom) {
+            [_selectedTitleOrCustomModels enumerateObjectsUsingBlock:^(id customModel, NSUInteger idx, BOOL *stop) {
+                NSUInteger scrollIdx = [self.modelsM[idx] indexOfObject:customModel];
+                NSAssert(scrollIdx != NSNotFound, @"%@ does not exist in %@", customModel, self.modelsM);
+                [pickerView selectRow:scrollIdx inComponent:idx animated:YES];
+            }];
+        } else {
+            _selectedTitleOrCustomModels = [_selectedTitleOrCustomModels componentsSeparatedByString:@" "];
+            [_selectedTitleOrCustomModels enumerateObjectsUsingBlock:^(NSString *componentSelectedTitle, NSUInteger idx, BOOL *stop) {
+                NSUInteger scrollIdx = [self.modelsM[idx] indexOfObjectPassingTest:^BOOL(MXPickerModel *model, NSUInteger idx, BOOL *stop) {
+                    return [model.title isEqualToString:componentSelectedTitle];
+                }];
+                NSAssert(scrollIdx != NSNotFound, @"%@ does not exist in %@", componentSelectedTitle, self.modelsM);
+                [pickerView selectRow:scrollIdx inComponent:idx animated:YES];
+            }];
+        }
     }
     return self;
 }
@@ -291,6 +307,31 @@ blue:((float)(0x##rgbValue & 0xFF))/255.0 alpha:trans]
 
 #pragma mark - private methods
 - (void)calculateDateIfNeeded {
+    switch (_pickerViewMode) {
+        case MXPickerViewModeCustom:
+            NSAssert(!_selectedTitleOrCustomModels || [_selectedTitleOrCustomModels isKindOfClass:NSArray.class], @"when mode is MXPickerViewModeCustom, `selectedTitleOrCustomModels` should pass `customModels`, type of NSArray");
+            break;
+        case MXPickerViewModeDD:
+        case MXPickerViewModeDD_DD:
+        case MXPickerViewModeMM:
+        case MXPickerViewModeMM_MM:
+        case MXPickerViewModeMM_DD:
+        case MXPickerViewModeMMDD_MMDD:
+        case MXPickerViewModeYYYY:
+        case MXPickerViewModeYYYY_YYYY:
+        case MXPickerViewModeYYYY_MM:
+        case MXPickerViewModeYYYYMM_YYYYMM:
+        case MXPickerViewModeYYYYMMDD_YYYYMMDD:
+            NSAssert(!_selectedTitleOrCustomModels || ([_selectedTitleOrCustomModels isKindOfClass:NSString.class] && [_selectedTitleOrCustomModels componentsSeparatedByString:@" "]), @"when mode is for date such as `MXPickerViewModeDD`..., `selectedTitleOrCustomModels` should pass `selectedTitle`, type of NSString, joined by whitespace, format something like `12 12`");
+            break;
+        case MXPickerViewModeTime:
+        case MXPickerViewModeDate:
+        case MXPickerViewModeDateAndTime:
+        case MXPickerViewModeCountDownTimer:
+            // when mode for `UIDatePicker`, such as `MXPickerViewModeDateAndTime`, `selectedTitleOrCustomModels` should not pass, always be nil!
+            _selectedTitleOrCustomModels = nil;
+            break;
+    }
     if (_minimumDate && _maximumDate) {
         _deltaBetweenMaxAndMin = 0;
         return;
@@ -456,7 +497,7 @@ blue:((float)(0x##rgbValue & 0xFF))/255.0 alpha:trans]
     if (_componentWidth) return _componentWidth;
     UIPickerView *pickerView = (id)_uiDatePickerOrUIPickerView;
     NSInteger numberOfComponents = [self numberOfComponentsInPickerView:pickerView];
-    return _componentWidth = pickerView.bounds.size.width/numberOfComponents;
+    return _componentWidth = (pickerView.bounds.size.width - (numberOfComponents - 1) * 5)/numberOfComponents;
 }
 
 - (CGFloat)componentRowHeight {
@@ -554,14 +595,7 @@ blue:((float)(0x##rgbValue & 0xFF))/255.0 alpha:trans]
     return !_configPickerViewRowHeightForComponentBlock ? self.componentRowHeight : _configPickerViewRowHeightForComponentBlock(self, pickerView, component);
 }
 
-/*- (nullable NSString *)pickerView:(UIPickerView *)pickerView titleForRow:(NSInteger)row forComponent:(NSInteger)component {
-    NSString *title = !_configPickerViewTitleForRowForComponentBlock ? nil : _configPickerViewTitleForRowForComponentBlock(self, pickerView, row, component);
-    MXPickerModel *model = _modelsM[component][row];
-    return title ?: (![model isKindOfClass:MXPickerModel.class] ? nil : model.title);
-}*/
-
 - (void)pickerView:(UIPickerView *)pickerView didSelectRow:(NSInteger)row inComponent:(NSInteger)component {
-    !_datePickerDidChangeBlock ?: _datePickerDidChangeBlock(_pickerViewMode, 0, 0, [_modelsM[component][row] title]);
     if (_pickerViewMode == MXPickerViewModeYYYYMMDD_YYYYMMDD) {
         NSInteger dayCompnent = 0;
         if (component == 0 || component == 1 || component == 3 || component == 4) {
@@ -594,11 +628,11 @@ blue:((float)(0x##rgbValue & 0xFF))/255.0 alpha:trans]
     } else if (_pickerViewMode == MXPickerViewModeMMDD_MMDD || _pickerViewMode == MXPickerViewModeMM_DD) {
         if (component == 0 || component == 2) {
             NSInteger dayCompnent = component + 1;
-            NSString *year = [NSString stringWithFormat:@"%@", [NSCalendar.currentCalendar components:NSCalendarUnitYear fromDate:NSDate.date]], *month = [_modelsM[component][row] title];
+            NSString *year = [NSString stringWithFormat:@"%ld", [NSCalendar.currentCalendar components:NSCalendarUnitYear fromDate:NSDate.date].year], *month = [_modelsM[component][row] title];
             //curr component is month
             NSDateFormatter *fmt = NSDateFormatter.new;
-            fmt.dateFormat = [NSString stringWithFormat:@"yyyy%@MM%@", _yearLocale, _dayLocale];
-            NSDate *date = [fmt dateFromString:[NSString stringWithFormat:@"%@%@%02ld%@", year, _yearLocale, month.integerValue, _dayLocale]];
+            fmt.dateFormat = [NSString stringWithFormat:@"yyyy%@MM%@", _yearLocale, _monthLocale];
+            NSDate *date = [fmt dateFromString:[NSString stringWithFormat:@"%@%@%ld%@", year, _yearLocale, month.integerValue, _monthLocale]];
             if (!date) return;
             NSInteger numberOfDays = [self numberOfDaysInTheMonthOfDate:date];
             //DD
@@ -611,6 +645,7 @@ blue:((float)(0x##rgbValue & 0xFF))/255.0 alpha:trans]
             [pickerView reloadComponent:dayCompnent];
         }
     }
+    !_datePickerDidChangeBlock ?: _datePickerDidChangeBlock(_pickerViewMode, 0, 0, [_modelsM[component][row] title]);
 }
 
 - (UIView *)pickerView:(UIPickerView *)pickerView viewForRow:(NSInteger)row forComponent:(NSInteger)component reusingView:(UIView *)view {

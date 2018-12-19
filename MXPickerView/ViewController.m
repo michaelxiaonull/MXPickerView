@@ -11,9 +11,15 @@
 
 @interface ViewController ()
 
+@property (nonatomic) NSMutableDictionary<NSNumber *, id> *selectedTitleOrCustomModelsDictM;// 记录每种mode的上一个`selectedTitleOrCustomModels`
+
 @end
 
 @implementation ViewController
+
+- (void)viewDidLoad {
+    _selectedTitleOrCustomModelsDictM = @{}.mutableCopy;
+}
 
 #pragma mark - button actions
 - (IBAction)button:(UIButton *)sender {
@@ -50,17 +56,28 @@
 - (void)showPickerViewForModeCustom {
     [MXPickerView showWithSize:CGSizeMake(self.view.bounds.size.width, 200) pickerViewMode:MXPickerViewModeCustom updateBlock:^(MXPickerView *pickerView, MXPickerViewMode pickerViewMode, id uiDatePickerOrUIPickerView) {
         // 设置`contentlLabel`文字
-        pickerView.modelsM = (id)@[@[@"0-0", @"0-1", @"0-2"], @[@"1-0", @"1-1", @"1-2"], @[@"2-0", @"2-1", @"2-2"]];
+        pickerView.modelsM = (id)@[@[@"0-0", @"0-1", @"0-2", @"0-3"], @[@"1-0", @"1-1", @"1-2", @"1-3"], @[@"2-0", @"2-1", @"2-2", @"2-3"]];
+        //pickerView.selectedTitleOrCustomModels = @[@"0-1", @"1-2", @"2-3"];
+        pickerView.selectedTitleOrCustomModels = (NSArray *)self.selectedTitleOrCustomModelsDictM[@(pickerViewMode)];
         pickerView.configPickerViewTitleForRowForComponentBlock = ^NSString *(MXPickerView *mxPickerView, UIPickerView *pickerView, NSInteger row, NSInteger component) {
             return [NSString stringWithFormat:@"%@", mxPickerView.modelsM[component][row]];
         };
+        //pickerView.barBtnItemTitleTextAttributes = @{NSFontAttributeName: [UIFont boldSystemFontOfSize:14], NSForegroundColorAttributeName: [UIColor redColor]};
+        pickerView.doneButtonDidClickBlock = ^(MXPickerViewMode pickerViewMode, CGFloat countDownDuration, NSDate *date, id selectedTitleOrCustomModels) {
+            NSLog(@"selectedTitleOrCustomModels: %@", selectedTitleOrCustomModels);
+            self.selectedTitleOrCustomModelsDictM[@(pickerViewMode)] = (NSArray *)selectedTitleOrCustomModels;
+        };
         /*// 设置`contentlLabel`属性字符串，打开注释
-        pickerView.configPickerViewAttributedTitleForRowForComponentBlock = ^NSAttributedString *(MXPickerView *mxPickerView, UIPickerView *pickerView, NSInteger row, NSInteger component) {
+         pickerView.configPickerViewAttributedTitleForRowForComponentBlock = ^NSAttributedString *(MXPickerView *mxPickerView, UIPickerView *pickerView, NSInteger row, NSInteger component) {
             return [[NSAttributedString alloc] initWithString:@"attributed title" attributes:@{NSForegroundColorAttributeName:[UIColor purpleColor]}];
         };*/
         /*// 需要为不同`component`返回不一样列高时，打开注释
          pickerView.configPickerViewWidthForComponentBlock = ^CGFloat(MXPickerView *mxPickerView, UIPickerView *pickerView, NSInteger component) {
              return (component == 0 || component == 3) ? 70 : (self.view.bounds.size.width - 2 * 80)/4;
+         };*/
+        /*// 为每个`component`设置不同的行高, 相同的可以直接设置`pickerView.componentRowHeight = xx`
+         pickerView.configPickerViewRowHeightForComponentBlock = ^CGFloat(MXPickerView *mxPickerView, UIPickerView *pickerView, NSInteger component) {
+             return 100;
          };*/
         //pickerView.componentRowHeight = 100; //默认每一列`component`行高都为40,当所有的`component`行高相等时，可统一设置, 相当于`tableView.rowHeight`
         //pickerView.toolBarPositionBottom = YES; //默认为`NO`,`返回`和`确定`按钮显示在顶部，当设为`YES`,`返回`和`确定`按钮显示在底部
@@ -68,14 +85,18 @@
         //pickerView.topTipBarH = 50; //`topTipBarTitles`一栏高度，默认是44
         //pickerView.toolBarH = 30; //`返回`和`确定`按钮一栏高度，默认是44
         //pickerView.backgroundColor = [UIColor lightGrayColor];
+        /*//自定义在`component`中的`contentView`
+         pickerView.configPickerViewViewForRowForComponentBlock = ^UIView *(MXPickerView *mxPickerView, UIPickerView *pickerView, NSInteger row, NSInteger component, UIView *reusingView) {
+             return [UIButton buttonWithType:UIButtonTypeContactAdd];
+        };*/
         // 想设置`contentLabel`的各个属性，实现`appearance block`
-        /*pickerView.configPickerViewContentLabelAppearanceForRowForComponentBlock = ^(MXPickerView *mxPickerView, UIPickerView *pickerView, UILabel *contentLabel, NSInteger row, NSInteger component) {
+        pickerView.configPickerViewContentLabelAppearanceForRowForComponentBlock = ^(MXPickerView *mxPickerView, UIPickerView *pickerView, UILabel *contentLabel, NSInteger row, NSInteger component) {
             contentLabel.backgroundColor = [UIColor yellowColor];
             contentLabel.textAlignment = NSTextAlignmentRight;
-         };*/
-        pickerView.doneButtonDidClickBlock = ^(MXPickerViewMode pickerViewMode, CGFloat countDownDuration, NSDate *date, id selectedTitleOrCustomModels) {
-            NSLog(@"selectedTitleOrCustomModels: %@", selectedTitleOrCustomModels);
-        };
+         };
+        /*pickerView.datePickerDidChangeBlock = ^(MXPickerViewMode pickerViewMode, CGFloat countDownDuration, NSDate *date, NSString *selectedTitle) {
+            NSLog(@"pickerViewMode\n: %ld, countDownDuration\n: %f, date\n: %@, selectedTitle\n: %@", pickerViewMode, countDownDuration, date, selectedTitle);
+        };*/
     }];
 }
 
@@ -94,6 +115,7 @@
                  pickerView.maximumDate = [NSDate dateWithTimeInterval:10 * 24 * 60 * 60 sinceDate:pickerView.minimumDate];
                  */
                 //方式3，什么都不写，全部使用默认值，1号 - 当月最大天数，`pickerView.deltaBetweenMaxAndMin = 当月最大天数`;//会根据当前模式设置默认值,`MXPickerViewModeDD_DD`会自动算当月最大几号，以及闰年
+                //
                 break;
             }
             case MXPickerViewModeMM:
@@ -181,7 +203,7 @@
         //需要为不同`component`返回不一样列宽时，打开注释
         if (mode == MXPickerViewModeYYYYMMDD_YYYYMMDD) {
             pickerView.configPickerViewWidthForComponentBlock = ^CGFloat(MXPickerView *mxPickerView, UIPickerView *pickerView, NSInteger component) {
-                return (component == 0 || component == 3) ? 80 : (mxPickerView.bounds.size.width - 2 * 80)/4;
+                return (component == 0 || component == 3) ? 60 : (mxPickerView.bounds.size.width - 2 * 60 - 15)/4;
             };
         }
 
@@ -199,11 +221,14 @@
         pickerView.yearLocale = @"年";
         pickerView.monthLocale = @"月";
         pickerView.dayLocale = @"号";
+        pickerView.selectedTitleOrCustomModels = (NSString *)self.selectedTitleOrCustomModelsDictM[@(mode)];;
         pickerView.doneButtonDidClickBlock = ^(MXPickerViewMode pickerViewMode, CGFloat countDownDuration, NSDate *date, id selectedTitleOrCustomModels) {
             NSLog(@"selectedTitleOrCustomModels: %@", selectedTitleOrCustomModels);
+            self.selectedTitleOrCustomModelsDictM[@(pickerViewMode)] = (NSString *)selectedTitleOrCustomModels;
         };
     }];
 }
+
 
 - (void)showPickerViewForModeTime:(MXPickerViewMode)mode {
     [MXPickerView showWithSize:CGSizeMake(self.view.bounds.size.width, 200) pickerViewMode:mode updateBlock:^(MXPickerView *pickerView, MXPickerViewMode pickerViewMode, id uiDatePickerOrUIPickerView) {

@@ -48,6 +48,10 @@ typedef NS_ENUM(NSInteger, MXPickerViewMode) {
  * if `isToolBarPositionBottom` set to YES, toolBarBottom will postion bottom, cancel bar button item and done bar button item position center
  */
 @property (nonatomic, getter=isToolBarPositionBottom) BOOL toolBarPositionBottom;
+
+/**
+ * 不为`nil`时, `toolBarPositionBottom`会自动设置为`YES`，底部显示`返回`和`确定`按钮，顶部显示`topTipBarTitles`, 如`开始日期 - 结束日期`
+ */
 @property (nonatomic, copy) NSArray<NSString *> *topTipBarTitles;
 @property (nonatomic, readonly) MXPickerViewMode pickerViewMode;
 /**
@@ -62,7 +66,15 @@ typedef NS_ENUM(NSInteger, MXPickerViewMode) {
  */
 @property (nonatomic, getter=shouldShowDescending) BOOL showsDescending;
 
-@property (nonatomic) NSString *selectedStr;
+/**
+ * when mode is `MXPickerViewModeCustom`, `selectedTitleOrCustomModels` should pass `customModels`, type of `NSArray`
+ * when mode is for date such as `MXPickerViewModeDD`..., `selectedTitleOrCustomModels` should pass `selectedTitle`, type of `NSString`, joined by whitespace, format something like `12 12`
+ * when mode for `UIDatePicker`, such as `MXPickerViewModeDateAndTime`, `selectedTitleOrCustomModels` should not pass, always be nil!
+ * 当模式为`MXPickerViewModeCustom`, `selectedTitleOrCustomModels` 应该为`customModels`, 是一个 `NSArray`数组类型
+ * 当模式为日期一类的，如`MXPickerViewModeDD`..., `selectedTitleOrCustomModels`应该为`selectedTitle`, 是一个用空格拼接的`NSString`数组类型, 格式类似于`12 12`
+ * 当模式为`UIDatePicker`一类的, 如`MXPickerViewModeDateAndTime`, `selectedTitleOrCustomModels` 不应该传, 默认值总是nil!
+ */
+@property (nonatomic) id selectedTitleOrCustomModels;
 
 /**
  * specify min/max date range. default is nil. When min > max, the values are ignored. Ignored in countdown timer mode
@@ -81,21 +93,25 @@ typedef NS_ENUM(NSInteger, MXPickerViewMode) {
 
 /**
  * each component's width height in picker view will set to `componentWidth`
+ * 设置每个`component`的宽度，等宽，如果不设置，默认为`pickerView.bounds.size.width/numberOfComponents`
  */
 @property (nonatomic) CGFloat componentWidth;
 
 /**
  * each component's row height in picker view will set to `componentRowHeight `
+ * 设置每个`component`的行高，如果不设置，默认为`40`
  */
 @property (nonatomic) CGFloat componentRowHeight;
 
 /**
  * set component's width with different values
+ * 为每个`component`设置不同的宽度, 相同的可以直接设置`pickerView.componentWidth = xx`
  */
 @property (nonatomic, copy) CGFloat (^configPickerViewWidthForComponentBlock)(MXPickerView *mxPickerView, UIPickerView *pickerView, NSInteger component);
 
 /**
- * set component's row height with different values
+ * set component's row height with same values
+ * 为每个`component`设置相同的行高, 等价于`pickerView.componentRowHeight = xx`
  */
 @property (nonatomic, copy) CGFloat (^configPickerViewRowHeightForComponentBlock)(MXPickerView *mxPickerView, UIPickerView *pickerView, NSInteger component);
 
@@ -111,9 +127,14 @@ typedef NS_ENUM(NSInteger, MXPickerViewMode) {
 
 /**
  * set content label appearance such as font, alignment, backgroundColor
+ * 设置 content label 的样式，如字体，文字对齐方式，背景颜色等...
  */
 @property (nonatomic, copy) void (^configPickerViewContentLabelAppearanceForRowForComponentBlock)(MXPickerView *mxPickerView, UIPickerView *pickerView, UILabel *contentLabel, NSInteger row, NSInteger component);
 
+/**
+ * content view for row in component
+ * 自定义在`component`中的`contentView`
+ */
 @property (nonatomic, copy) UIView * (^configPickerViewViewForRowForComponentBlock)(MXPickerView *mxPickerView, UIPickerView *pickerView, NSInteger row, NSInteger component, UIView *reusingView);
 
 //callbacks
