@@ -23,7 +23,8 @@ MXPickerViewModeCustom | MXPickerViewModeDD | MXPickerViewModeDD_DD | MXPickerVi
 
 
 ## Attributes
-Demo | Attribute Name | Example
+
+ScreenshotsInDemoxxxxxx | Attribute Name | Example
 :---: | :---: | :---: | 
 <image src="https://user-images.githubusercontent.com/38175174/50138825-d3242c00-02da-11e9-8d10-187aabda8dfd.gif" width="250px"> | NSDictionary<NSAttributedStringKey, id> *barBtnItemTitleTextAttributes; | pickerView.barBtnItemTitleTextAttributes = @{NSFontAttributeName: [UIFont boldSystemFontOfSize:14], NSForegroundColorAttributeName: [UIColor redColor]}
 <image src="https://user-images.githubusercontent.com/38175174/50142173-63b33a00-02e4-11e9-88bd-cf5ade6c36f9.gif" width="250px"> | NSString *yearLocale, *monthLocale, *dayLocale;  | pickerView.yearLocale = @"年";<br>pickerView.monthLocale = @"月";<br>pickerView.dayLocale = @"号";<br>
